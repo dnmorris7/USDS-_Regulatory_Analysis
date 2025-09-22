@@ -57,10 +57,10 @@ public class DownloadEndpointTests {
     }
     
     @Test
-    @DisplayName("Test download endpoint should return 200 OK and download data")
-    void testDownloadEndpoint() {
+    @DisplayName("eCFR source download endpoint should return 200 OK and download data")
+    void testEcfrSourceDownloadEndpoint() {
         ResponseEntity<String> response = restTemplate.getForEntity(
-                getBaseUrl() + "/test-download", String.class);
+                getBaseUrl() + "/eCFR_source-download", String.class);
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -72,7 +72,7 @@ public class DownloadEndpointTests {
     @DisplayName("Stats endpoint should return 200 OK with regulation statistics")
     void testStatsEndpoint() {
         // First download some data
-        restTemplate.getForEntity(getBaseUrl() + "/test-download", String.class);
+        restTemplate.getForEntity(getBaseUrl() + "/eCFR_source-download", String.class);
         
         ResponseEntity<String> response = restTemplate.getForEntity(
                 getBaseUrl() + "/stats", String.class);
@@ -87,7 +87,7 @@ public class DownloadEndpointTests {
     @DisplayName("Title 7 regulations endpoint should return 200 OK with regulation list")
     void testTitle7RegulationsEndpoint() {
         // First download some data
-        restTemplate.getForEntity(getBaseUrl() + "/test-download", String.class);
+        restTemplate.getForEntity(getBaseUrl() + "/eCFR_source-download", String.class);
         
         ResponseEntity<String> response = restTemplate.getForEntity(
                 getBaseUrl() + "/regulations/title7", String.class);
@@ -103,7 +103,7 @@ public class DownloadEndpointTests {
     @DisplayName("Analytics word count distribution should return 200 OK")
     void testAnalyticsWordCountDistribution() {
         // First download some data
-        restTemplate.getForEntity(getBaseUrl() + "/test-download", String.class);
+        restTemplate.getForEntity(getBaseUrl() + "/eCFR_source-download", String.class);
         
         ResponseEntity<String> response = restTemplate.getForEntity(
                 getBaseUrl() + "/analytics/word-count-distribution", String.class);
@@ -118,7 +118,7 @@ public class DownloadEndpointTests {
     @DisplayName("Analytics top regulations should return 200 OK")
     void testAnalyticsTopRegulations() {
         // First download some data
-        restTemplate.getForEntity(getBaseUrl() + "/test-download", String.class);
+        restTemplate.getForEntity(getBaseUrl() + "/eCFR_source-download", String.class);
         
         ResponseEntity<String> response = restTemplate.getForEntity(
                 getBaseUrl() + "/analytics/top-regulations?limit=5", String.class);
