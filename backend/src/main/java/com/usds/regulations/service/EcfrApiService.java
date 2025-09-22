@@ -1,19 +1,8 @@
 package com.usds.regulations.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.usds.regulations.entity.Regulation;
-import com.usds.regulations.repository.RegulationRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.HttpClientErrorException;
-
 import java.security.MessageDigest;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,11 +10,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.usds.regulations.entity.Regulation;
+import com.usds.regulations.repository.RegulationRepository;
+
 @Service
 public class EcfrApiService {
     
     private static final Logger logger = LoggerFactory.getLogger(EcfrApiService.class);
-    private static final String ECFR_BASE_URL = "https://www.ecfr.gov/api";
+    private static final String ECFR_BASE_URL = "https://ecfr.federalregister.gov/api";
     
     @Autowired
     private RegulationRepository regulationRepository;
@@ -190,8 +190,8 @@ public class EcfrApiService {
         logger.info("Downloading CFR Title {} from API only (no database save)", titleNumber);
         
         try {
-            String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            List<String> partNumbers = getPartNumbersForTitle(titleNumber, currentDate);
+            String latestDate = getLatestAvailableDate();
+            List<String> partNumbers = getPartNumbersForTitle(titleNumber, latestDate);
             
             List<Regulation> regulations = new ArrayList<>();
             int processedCount = 0;
@@ -363,6 +363,87 @@ public class EcfrApiService {
         return result;
     }
     
+    /**
+     * Get recent changes/amendments from eCFR API for a specific title
+     * This uses the corrections/amendments endpoint to track changes over time
+     */
+    public List<Map<String, Object>> getRecentChangesFromECFR(Integer titleNumber) {
+        try {
+            String changesUrl = ECFR_BASE_URL + "/admin/v1/corrections.json";
+            logger.info("Checking recent changes from eCFR API: {}", changesUrl);
+            
+            String changesResponse = restTemplate.getForObject(changesUrl, String.class);
+            JsonNode changesJson = objectMapper.readTree(changesResponse);
+            
+            List<Map<String, Object>> recentChanges = new ArrayList<>();
+            JsonNode correctionsNode = changesJson.get("corrections");
+            
+            if (correctionsNode != null && correctionsNode.isArray()) {
+                for (JsonNode correction : correctionsNode) {
+                    int correctionTitle = correction.path("title").asInt(-1);
+                    if (correctionTitle == titleNumber) {
+                        Map<String, Object> change = new HashMap<>();
+                        change.put("title", correctionTitle);
+                        change.put("part", correction.path("part").asText());
+                        change.put("correctionDate", correction.path("correction_date").asText());
+                        change.put("effectiveDate", correction.path("effective_date").asText());
+                        change.put("description", correction.path("description").asText());
+                        change.put("amendmentType", correction.path("amendment_type").asText());
+                        change.put("documentNumber", correction.path("document_number").asText());
+                        recentChanges.add(change);
+                    }
+                }
+            }
+            
+            logger.info("Found {} recent changes for Title {}", recentChanges.size(), titleNumber);
+            return recentChanges;
+            
+        } catch (Exception e) {
+            logger.error("Error getting recent changes for Title {}: {}", titleNumber, e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+    
+    /**
+     * Check for changes across all titles and return summary
+     */
+    public Map<String, Object> getOverallChangesSummary() {
+        Map<String, Object> summary = new HashMap<>();
+        List<Map<String, Object>> allChanges = new ArrayList<>();
+        int totalChanges = 0;
+        
+        try {
+            for (int titleNumber = 1; titleNumber <= 50; titleNumber++) {
+                List<Map<String, Object>> titleChanges = getRecentChangesFromECFR(titleNumber);
+                if (!titleChanges.isEmpty()) {
+                    Map<String, Object> titleSummary = new HashMap<>();
+                    titleSummary.put("titleNumber", titleNumber);
+                    titleSummary.put("titleName", getTitleName(titleNumber));
+                    titleSummary.put("changesCount", titleChanges.size());
+                    titleSummary.put("changes", titleChanges);
+                    allChanges.add(titleSummary);
+                    totalChanges += titleChanges.size();
+                }
+                
+                // Be respectful to API
+                Thread.sleep(500);
+            }
+            
+            summary.put("totalChanges", totalChanges);
+            summary.put("titlesWithChanges", allChanges.size());
+            summary.put("titleChanges", allChanges);
+            summary.put("checkedAt", LocalDateTime.now());
+            
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.error("Changes summary interrupted: {}", e.getMessage());
+        } catch (Exception e) {
+            logger.error("Error getting overall changes summary: {}", e.getMessage());
+        }
+        
+        return summary;
+    }
+    
     
     /**
      * LEGACY METHOD: Keep for backward compatibility with TestController
@@ -382,12 +463,61 @@ public class EcfrApiService {
     // ================================
     
     /**
+     * Get the most recent available date for eCFR API calls
+     */
+    private String getLatestAvailableDate() {
+        try {
+            String titlesUrl = ECFR_BASE_URL + "/versioner/v1/titles";
+            String titlesResponse = restTemplate.getForObject(titlesUrl, String.class);
+            if (titlesResponse != null) {
+                JsonNode titlesJson = objectMapper.readTree(titlesResponse);
+                JsonNode titlesArray = titlesJson.get("titles");
+                if (titlesArray != null && titlesArray.isArray() && titlesArray.size() > 0) {
+                    // Get the up_to_date_as_of from the first title (should be consistent across all titles)
+                    String upToDateAsOf = titlesArray.get(0).path("up_to_date_as_of").asText("");
+                    if (!upToDateAsOf.isEmpty()) {
+                        logger.debug("Using latest available date: {}", upToDateAsOf);
+                        return upToDateAsOf;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Could not get latest available date, falling back to current date: {}", e.getMessage());
+        }
+        
+        // Fallback to current date
+        return LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    }
+
+    /**
      * Download single part content from API (no database save)
+     * Now uses versioner API for better content retrieval
      */
     private Regulation downloadPartContentFromAPI(Integer titleNumber, String partNumber) {
         try {
+            String latestDate = getLatestAvailableDate();
+            
+            // First try the versioner API for better content
+            String versionerUrl = ECFR_BASE_URL + "/versioner/v1/structure/" + latestDate + "/title-" + titleNumber + ".json";
+            logger.debug("Trying versioner API: {}", versionerUrl);
+            
+            try {
+                String versionerResponse = restTemplate.getForObject(versionerUrl, String.class);
+                if (versionerResponse != null) {
+                    JsonNode versionerJson = objectMapper.readTree(versionerResponse);
+                    Regulation regulation = extractFromVersionerAPI(versionerJson, titleNumber, partNumber, latestDate);
+                    if (regulation != null) {
+                        logger.info("Successfully retrieved content from versioner API for Title {} Part {}", titleNumber, partNumber);
+                        return regulation;
+                    }
+                }
+            } catch (Exception e) {
+                logger.debug("Versioner API failed for Title {} Part {}: {}", titleNumber, partNumber, e.getMessage());
+            }
+            
+            // Fallback to search API
             String searchUrl = ECFR_BASE_URL + "/search/v1/results?query=title:" + titleNumber + " part:" + partNumber + "&per_page=5";
-            logger.debug("API call: {}", searchUrl);
+            logger.debug("Fallback to search API: {}", searchUrl);
             
             String searchResponse = restTemplate.getForObject(searchUrl, String.class);
             if (searchResponse != null) {
@@ -411,6 +541,7 @@ public class EcfrApiService {
                     regulation.setAgencyName(agencyName);
                     regulation.setWordCount(wordCount);
                     regulation.setContentChecksum(checksum);
+                    regulation.setSourceUrl(searchUrl);
                     
                     return regulation;
                 }
@@ -422,6 +553,121 @@ public class EcfrApiService {
             logger.error("Error downloading Title {} Part {}: {}", titleNumber, partNumber, e.getMessage());
             return createBasicRegulation(titleNumber, partNumber);
         }
+    }
+    
+    /**
+     * Extract regulation from versioner API response for better content
+     */
+    private Regulation extractFromVersionerAPI(JsonNode versionerJson, Integer titleNumber, String partNumber, String apiDate) {
+        try {
+            // Navigate the versioner JSON structure to find the specific part
+            JsonNode titleNode = versionerJson.get("title");
+            if (titleNode != null) {
+                // Look for the specific part in the structure
+                JsonNode chaptersNode = titleNode.get("children");
+                if (chaptersNode != null && chaptersNode.isArray()) {
+                    for (JsonNode chapter : chaptersNode) {
+                        JsonNode partsNode = chapter.get("children");
+                        if (partsNode != null && partsNode.isArray()) {
+                            for (JsonNode part : partsNode) {
+                                // Check if this is the part we're looking for
+                                String partId = part.path("identifier").asText("");
+                                if (partId.contains("CFR " + partNumber) || partId.endsWith(" " + partNumber)) {
+                                    
+                                    String title = part.path("label").asText("CFR Title " + titleNumber + " Part " + partNumber);
+                                    String content = extractContentFromVersionerPart(part);
+                                    
+                                    // Look for amendment information
+                                    String lastAmended = part.path("last_amended").asText("");
+                                    String lastIssued = part.path("last_issued").asText("");
+                                    String lastUpdated = part.path("last_updated").asText("");
+                                    
+                                    if (!content.isEmpty() && !content.equals("Content not available")) {
+                                        Regulation regulation = new Regulation();
+                                        regulation.setCfrTitle(titleNumber);
+                                        regulation.setPartNumber(partNumber);
+                                        regulation.setTitle(title);
+                                        regulation.setContent(content);
+                                        regulation.setAgencyName(getAgencyForTitle(titleNumber));
+                                        regulation.setWordCount(calculateWordCount(content));
+                                        regulation.setContentChecksum(generateChecksum(content));
+                                        
+                                        // Set government amendment dates
+                                        try {
+                                            if (!lastAmended.isEmpty()) {
+                                                regulation.setLatestAmendedOn(LocalDate.parse(lastAmended));
+                                            }
+                                            if (!lastIssued.isEmpty()) {
+                                                regulation.setLatestIssueDate(LocalDate.parse(lastIssued));
+                                            }
+                                            if (!lastUpdated.isEmpty()) {
+                                                regulation.setLastUpdatedOn(LocalDate.parse(lastUpdated));
+                                            }
+                                        } catch (Exception dateParseException) {
+                                            logger.warn("Error parsing dates for Title {} Part {}: {}", titleNumber, partNumber, dateParseException.getMessage());
+                                        }
+                                        
+                                        regulation.setSourceUrl(ECFR_BASE_URL + "/versioner/v1/structure/" + 
+                                            apiDate + "/title-" + titleNumber + ".json");
+                                        
+                                        logger.debug("Extracted content from versioner API: {} words", regulation.getWordCount());
+                                        return regulation;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Error extracting from versioner API for Title {} Part {}: {}", titleNumber, partNumber, e.getMessage());
+        }
+        return null;
+    }
+    
+    /**
+     * Extract content text from a versioner API part node
+     */
+    private String extractContentFromVersionerPart(JsonNode partNode) {
+        StringBuilder content = new StringBuilder();
+        
+        try {
+            // Try different fields that might contain content
+            String text = partNode.path("text").asText("");
+            if (!text.isEmpty()) {
+                content.append(text);
+            }
+            
+            String fullText = partNode.path("full_text").asText("");
+            if (!fullText.isEmpty()) {
+                if (content.length() > 0) content.append(" ");
+                content.append(fullText);
+            }
+            
+            String description = partNode.path("description").asText("");
+            if (!description.isEmpty()) {
+                if (content.length() > 0) content.append(" ");
+                content.append(description);
+            }
+            
+            // Try to extract from children nodes
+            JsonNode childrenNode = partNode.get("children");
+            if (childrenNode != null && childrenNode.isArray()) {
+                for (JsonNode child : childrenNode) {
+                    String childText = child.path("text").asText("");
+                    if (!childText.isEmpty()) {
+                        if (content.length() > 0) content.append(" ");
+                        content.append(childText);
+                    }
+                }
+            }
+            
+        } catch (Exception e) {
+            logger.warn("Error extracting content from versioner part: {}", e.getMessage());
+        }
+        
+        String result = content.toString().trim();
+        return result.isEmpty() ? "Content not available" : result;
     }
     
     /**
@@ -515,14 +761,14 @@ public class EcfrApiService {
     }
     
     /**
-     * Get part numbers for any CFR title
+     * Get part numbers for any CFR title using the correct date
      */
-    private List<String> getPartNumbersForTitle(Integer titleNumber, String currentDate) {
+    private List<String> getPartNumbersForTitle(Integer titleNumber, String apiDate) {
         List<String> partNumbers = new ArrayList<>();
         
         try {
             // Try structure API first
-            String structureUrl = ECFR_BASE_URL + "/versioner/v1/structure/" + currentDate + "/title-" + titleNumber + ".json";
+            String structureUrl = ECFR_BASE_URL + "/versioner/v1/structure/" + apiDate + "/title-" + titleNumber + ".json";
             logger.info("Fetching Title {} structure from: {}", titleNumber, structureUrl);
             
             String structureResponse = restTemplate.getForObject(structureUrl, String.class);

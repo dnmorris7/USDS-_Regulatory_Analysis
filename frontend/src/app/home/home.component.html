@@ -1,0 +1,120 @@
+<div class="container">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <h1 class="hero-title">
+      USDS Regulatory Analysis Platform
+    </h1>
+    <p class="hero-subtitle">
+      Powered by <span class="doge-branding">DOGE</span> efficiency principles, this platform automatically analyzes regulatory relationships across all 50 CFR titles to identify redundancies, gaps, and optimization opportunities in federal regulations.
+    </p>
+  </section>
+
+  <!-- Key Statistics -->
+  <section class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-number">50</div>
+      <div class="stat-label">CFR Titles</div>
+      <div class="stat-description">Complete coverage of all Code of Federal Regulations titles for comprehensive analysis</div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-number">110+</div>
+      <div class="stat-label">Relationships Detected</div>
+      <div class="stat-description">AI-powered relationship detection across regulations using advanced semantic analysis</div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-number">100</div>
+      <div class="stat-label">Sample Regulations</div>
+      <div class="stat-description">Mock data generation for testing and demonstration of analytical capabilities</div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-number">Real-time</div>
+      <div class="stat-label">Analysis Engine</div>
+      <div class="stat-description">Live relationship detection and regulatory impact assessment system</div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features-section">
+    <h2 class="section-title">Platform Capabilities</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <h3 class="feature-title">Automated Relationship Detection</h3>
+        <p class="feature-description">
+          Advanced AI algorithms automatically identify relationships between regulations across different CFR titles, uncovering hidden dependencies and potential conflicts.
+        </p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3 class="feature-title">Comprehensive Analytics</h3>
+        <p class="feature-description">
+          Real-time analytics dashboard providing insights into regulatory patterns, frequency distributions, and impact assessments across all federal agencies.
+        </p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <h3 class="feature-title">DOGE Efficiency Focus</h3>
+        <p class="feature-description">
+          Built with Department of Government Efficiency principles to identify redundancies, streamline processes, and eliminate bureaucratic inefficiencies.
+        </p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3 class="feature-title">Auto-Trigger System</h3>
+        <p class="feature-description">
+          Intelligent auto-trigger functionality that automatically initiates relationship analysis when new regulations are added or existing ones are modified.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Action Section -->
+  <section class="action-section">
+    <h2 class="section-title">Generate Analysis Data</h2>
+    <p class="hero-subtitle">
+      Start by generating comprehensive mock data with relationships across all CFR titles to explore the platform's analytical capabilities.
+    </p>
+    
+    <div class="action-buttons">
+      <button class="btn btn-primary" (click)="generateMockData()" [disabled]="isLoading">
+        <span class="loading-indicator" *ngIf="isLoading"></span>
+        {{ isLoading ? 'Generating Data...' : 'Generate Mock Data with Relationships' }}
+      </button>
+      
+      <button class="btn btn-secondary" (click)="viewAnalytics()" [disabled]="isLoading">
+        View Current Analytics
+      </button>
+    </div>
+
+    <!-- Results Section -->
+    <div class="results-section" *ngIf="showResults">
+      <div class="results-message" [class.success]="!hasError" [class.error]="hasError">
+        {{ resultMessage }}
+      </div>
+      
+      <div *ngIf="generationStats && !hasError">
+        <h3 style="color: var(--doge-white); margin-bottom: 1rem;">Generation Results:</h3>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-number">{{ generationStats.totalRegulations }}</div>
+            <div class="stat-label">Regulations Created</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">{{ generationStats.totalRelationships }}</div>
+            <div class="stat-label">Relationships Detected</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">{{ generationStats.cfr_titles_covered }}</div>
+            <div class="stat-label">CFR Titles Covered</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

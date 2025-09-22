@@ -1,0 +1,24 @@
+<div class="app-container">
+  <header class="main-header">
+    <div class="header-content">
+      <div class="logo-section">
+        <img src="assets/images/seals/doge-logo-sidenav.png" alt="DOGE" class="doge-logo">
+        <h1>USDS Regulatory Analysis</h1>
+      </div>
+      <nav class="main-nav">
+        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
+        <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+        <a routerLink="/analytics" routerLinkActive="active">Analytics</a>
+      </nav>
+    </div>
+  </header>
+  
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+  
+  <footer class="main-footer">
+    <p>&copy; 2025 USDS Regulatory Analysis | Powered by DOGE Efficiency</p>
+  </footer>
+</div>
+

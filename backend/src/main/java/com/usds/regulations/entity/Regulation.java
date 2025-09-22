@@ -1,9 +1,19 @@
 package com.usds.regulations.entity;
 
-import jakarta.persistence.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "regulations", indexes = {
@@ -50,6 +60,26 @@ public class Regulation {
     
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+    
+    // Amendment tracking fields from eCFR API
+    @Column(name = "latest_amended_on")
+    private LocalDate latestAmendedOn;
+    
+    @Column(name = "latest_issue_date")
+    private LocalDate latestIssueDate;
+    
+    @Column(name = "last_updated_on")
+    private LocalDate lastUpdatedOn;
+    
+    @Column(name = "amendment_count")
+    private Integer amendmentCount;
+    
+    @Column(name = "ecfr_last_modified")
+    private LocalDateTime ecfrLastModified;
+    
+    @Size(max = 500)
+    @Column(name = "source_url", length = 500)
+    private String sourceUrl;
     
     // Constructors
     public Regulation() {
@@ -198,6 +228,54 @@ public class Regulation {
     
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+    
+    public LocalDate getLatestAmendedOn() {
+        return latestAmendedOn;
+    }
+    
+    public void setLatestAmendedOn(LocalDate latestAmendedOn) {
+        this.latestAmendedOn = latestAmendedOn;
+    }
+    
+    public LocalDate getLatestIssueDate() {
+        return latestIssueDate;
+    }
+    
+    public void setLatestIssueDate(LocalDate latestIssueDate) {
+        this.latestIssueDate = latestIssueDate;
+    }
+    
+    public LocalDate getLastUpdatedOn() {
+        return lastUpdatedOn;
+    }
+    
+    public void setLastUpdatedOn(LocalDate lastUpdatedOn) {
+        this.lastUpdatedOn = lastUpdatedOn;
+    }
+    
+    public Integer getAmendmentCount() {
+        return amendmentCount;
+    }
+    
+    public void setAmendmentCount(Integer amendmentCount) {
+        this.amendmentCount = amendmentCount;
+    }
+    
+    public LocalDateTime getEcfrLastModified() {
+        return ecfrLastModified;
+    }
+    
+    public void setEcfrLastModified(LocalDateTime ecfrLastModified) {
+        this.ecfrLastModified = ecfrLastModified;
+    }
+    
+    public String getSourceUrl() {
+        return sourceUrl;
+    }
+    
+    public void setSourceUrl(String sourceUrl) {
+        this.sourceUrl = sourceUrl;
     }
     
     @Override

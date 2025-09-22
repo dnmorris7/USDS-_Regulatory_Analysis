@@ -1,20 +1,24 @@
 package com.usds.regulations.service;
 
-import com.usds.regulations.dto.AnalyticsResponse;
-import com.usds.regulations.dto.AnalyticsResponse.*;
-import com.usds.regulations.entity.Regulation;
-import com.usds.regulations.repository.RegulationRepository;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+import com.usds.regulations.dto.AnalyticsResponse;
+import com.usds.regulations.dto.AnalyticsResponse.AgencyStats;
+import com.usds.regulations.dto.AnalyticsResponse.OverallStats;
+import com.usds.regulations.dto.AnalyticsResponse.RecentChange;
+import com.usds.regulations.dto.AnalyticsResponse.TitleStats;
+import com.usds.regulations.entity.Regulation;
+import com.usds.regulations.repository.RegulationRepository;
 
 @Service
 public class AnalyticsService {

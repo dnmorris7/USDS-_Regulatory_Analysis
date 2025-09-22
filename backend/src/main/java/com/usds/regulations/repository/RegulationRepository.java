@@ -1,14 +1,15 @@
 package com.usds.regulations.repository;
 
-import com.usds.regulations.entity.Regulation;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import com.usds.regulations.entity.Regulation;
 
 @Repository
 public interface RegulationRepository extends JpaRepository<Regulation, Long> {
