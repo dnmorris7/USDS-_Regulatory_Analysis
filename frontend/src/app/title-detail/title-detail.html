@@ -1,0 +1,259 @@
+<div class="container">
+  <!-- Header Section -->
+  <section class="title-header">
+    <button class="back-button" (click)="goBack()">
+      ← 
+    </button>
+    <div class="title-info">
+      <h1 class="page-title">CFR Title {{titleNumber}} - Detailed Analysis</h1>
+      <h2 class="title-name" *ngIf="cfrTitle">{{cfrTitle.name}}</h2>
+      <p class="agency-name" *ngIf="cfrTitle">{{cfrTitle.agency}}</p>
+    </div>
+  </section>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-section">
+    <div class="loading-spinner"></div>
+    <p>Loading detailed analysis...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="error-section">
+    <h3>⚠️ Error Loading Details</h3>
+    <p>{{error}}</p>
+    <button class="btn btn-secondary" (click)="loadTitleDetails()">Try Again</button>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!loading && !error && metrics">
+    
+    <!-- Top Metrics Cards -->
+    <section class="metrics-grid">
+      
+      <!-- Word Count Analysis -->
+      <div class="metric-card">
+        <h3 class="metric-title">Word Count Analysis</h3>
+        <div class="metric-number primary">{{metrics.wordCount.total.toLocaleString()}}</div>
+        <div class="metric-label">Total Words</div>
+        <div class="metric-comparison">
+          vs. Average CFR Title: 
+          <span [class]="metrics.wordCount.percentageDifference >= 0 ? 'positive' : 'negative'">
+            {{metrics.wordCount.percentageDifference >= 0 ? '+' : ''}}{{metrics.wordCount.percentageDifference}}%
+          </span>
+        </div>
+      </div>
+
+      <!-- Historical Changes -->
+      <div class="metric-card">
+        <h3 class="metric-title">Historical Changes</h3>
+        <div class="metric-number secondary">{{metrics.historicalChanges.count}}</div>
+        <div class="metric-label">Changes ({{metrics.historicalChanges.period}})</div>
+        <div class="metric-status">
+          → <span class="status-indicator" [class]="metrics.historicalChanges.status.toLowerCase()">
+            {{metrics.historicalChanges.status}}
+          </span>
+        </div>
+      </div>
+
+      <!-- Redundancy Score -->
+      <div class="metric-card">
+        <h3 class="metric-title">Redundancy Score</h3>
+        <div class="metric-number accent">{{metrics.redundancyScore.score}}/{{metrics.redundancyScore.maxScore}}</div>
+        <div class="metric-label">Regulation Overlap</div>
+        <div class="redundancy-bar">
+          <div class="redundancy-fill" 
+               [style.width.%]="getRedundancyBarWidth()"
+               [class]="getRedundancyColorClass()">
+          </div>
+        </div>
+        <div class="redundancy-level">{{metrics.redundancyScore.level}} Redundancy</div>
+      </div>
+
+      <!-- Deregulation Potential -->
+      <div class="metric-card">
+        <h3 class="metric-title">Deregulation Potential</h3>
+        <div class="metric-number quaternary">{{metrics.deregulationPotential.opportunities}}</div>
+        <div class="metric-label">Identified Opportunities</div>
+        <div class="deregulation-details">
+          <span class="detail-badge">{{metrics.deregulationPotential.redundantSections}} Redundant Sections</span>
+          <span class="detail-badge">{{metrics.deregulationPotential.conflicts}} Conflicts</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Tabbed Analysis Sections -->
+    <section class="analysis-section">
+      
+      <!-- Tab Navigation -->
+      <nav class="tab-navigation">
+        <button 
+          class="tab-button" 
+          [class.active]="activeTab === 'historical-trends'"
+          (click)="setActiveTab('historical-trends')">
+          Historical Trends
+        </button>
+        <button 
+          class="tab-button" 
+          [class.active]="activeTab === 'agency-comparison'"
+          (click)="setActiveTab('agency-comparison')">
+          Agency Comparison
+        </button>
+        <button 
+          class="tab-button" 
+          [class.active]="activeTab === 'redundancy-conflicts'"
+          (click)="setActiveTab('redundancy-conflicts')">
+          Redundancy & Conflicts
+        </button>
+      </nav>
+
+      <!-- Historical Trends Tab -->
+      <div *ngIf="activeTab === 'historical-trends'" class="tab-content">
+        
+        <div class="content-section">
+          <h3 class="section-title">Regulation Growth Over Time</h3>
+          <p class="section-subtitle">Congressional Years 2021-2024</p>
+          
+          <div class="chart-placeholder">
+            <div class="chart-info">
+              📊 Chart.js integration would show:
+              <ul>
+                <li>Word count growth by congressional year</li>
+                <li>Number of new regulations added</li>
+                <li>Amendment frequency trends</li>
+                <li>Deregulation events timeline</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="content-section">
+          <h3 class="section-title">Recent Changes</h3>
+          
+          <div class="changes-table">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Word Impact</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let change of historicalChanges">
+                  <td>{{change.date}}</td>
+                  <td>
+                    <span class="change-type-badge" [class]="getChangeTypeClass(change.type)">
+                      {{change.type}}
+                    </span>
+                  </td>
+                  <td>
+                    <span [class]="getWordImpactClass(change.wordImpact)">
+                      {{change.wordImpact > 0 ? '+' : ''}}{{change.wordImpact.toFixed(4)}}
+                    </span>
+                  </td>
+                  <td>{{change.description}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Agency Comparison Tab -->
+      <div *ngIf="activeTab === 'agency-comparison'" class="tab-content">
+        
+        <div class="content-section">
+          <h3 class="section-title">Cross-Agency Analysis</h3>
+          <p class="section-subtitle">How this title compares to other CFR titles</p>
+          
+          <div class="comparison-metrics" *ngIf="agencyComparison">
+            
+            <div class="comparison-item">
+              <label>Regulatory Burden Rank:</label>
+              <div class="comparison-value primary">
+                #{{agencyComparison.regulatoryBurdenRank}} of {{agencyComparison.totalTitles}} CFR Titles
+              </div>
+            </div>
+
+            <div class="comparison-item">
+              <label>Word Count Percentile:</label>
+              <div class="comparison-value secondary">
+                {{agencyComparison.wordCountPercentile}}th percentile
+              </div>
+            </div>
+
+            <div class="comparison-item">
+              <label>Change Frequency:</label>
+              <div class="comparison-value accent">
+                {{agencyComparison.changeFrequency}} compared to other titles
+              </div>
+            </div>
+
+          </div>
+
+          <div class="chart-placeholder">
+            <div class="chart-info">
+              📊 Comparative charts would show:
+              <ul>
+                <li>Word count distribution across all CFR titles</li>
+                <li>Change frequency comparison by agency</li>
+                <li>Regulatory burden ranking visualization</li>
+                <li>Cross-title relationship mapping</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Redundancy & Conflicts Tab -->
+      <div *ngIf="activeTab === 'redundancy-conflicts'" class="tab-content">
+        
+        <div class="content-section">
+          <h3 class="section-title">Regulatory Relationship Analysis</h3>
+          <p class="section-subtitle">Overlaps, conflicts, and optimization opportunities</p>
+          
+          <div class="relationship-grid">
+            
+            <div class="relationship-card redundant">
+              <h4>Redundant Relationships</h4>
+              <div class="relationship-count">{{metrics.deregulationPotential.redundantSections}}</div>
+              <p>Sections that duplicate regulations in other CFR titles</p>
+            </div>
+
+            <div class="relationship-card conflicting">
+              <h4>Conflicting Relationships</h4>
+              <div class="relationship-count">{{metrics.deregulationPotential.conflicts}}</div>
+              <p>Regulations that contradict or conflict with other titles</p>
+            </div>
+
+            <div class="relationship-card complementary">
+              <h4>Complementary Relationships</h4>
+              <div class="relationship-count">15</div>
+              <p>Regulations that work together with other CFR titles</p>
+            </div>
+
+          </div>
+
+          <div class="chart-placeholder">
+            <div class="chart-info">
+              📊 Relationship visualization would show:
+              <ul>
+                <li>Network diagram of inter-title relationships</li>
+                <li>Conflict severity heat map</li>
+                <li>Redundancy elimination recommendations</li>
+                <li>DOGE efficiency optimization suggestions</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </div>
+</div>

@@ -1,1 +1,156 @@
-<p>dashboard works!</p>
+<div class="container">
+  <!-- Header Section -->
+  <section class="dashboard-header">
+    <h1 class="page-title">CFR Titles Dashboard</h1>
+    <p class="page-subtitle">
+      Comprehensive overview of all 50 Code of Federal Regulations titles with real-time analysis and relationship detection.
+    </p>
+  </section>
+
+  <!-- Controls Section -->
+  <section class="controls-section">
+    <div class="controls-grid">
+      <div class="search-control">
+        <label for="search">Search Titles:</label>
+        <input 
+          id="search"
+          type="text" 
+          [(ngModel)]="searchTerm" 
+          placeholder="Search by title, agency, or number..."
+          class="search-input"
+        >
+      </div>
+      
+      <div class="filter-control">
+        <label for="agency-filter">Filter by Agency:</label>
+        <select id="agency-filter" [(ngModel)]="selectedAgency" class="agency-select">
+          <option value="all">All Agencies</option>
+          <option *ngFor="let agency of agencies" [value]="agency">{{agency}}</option>
+        </select>
+      </div>
+      
+      <div class="action-controls">
+        <button class="btn btn-secondary" (click)="refreshData()" [disabled]="loading">
+          <span *ngIf="loading">Refreshing...</span>
+          <span *ngIf="!loading">Refresh Data</span>
+        </button>
+        
+        <!-- Development Only -->
+        <button 
+          *ngIf="isDevelopmentMode" 
+          class="btn btn-primary" 
+          (click)="generateMockDataForAll()" 
+          [disabled]="loading || generatingMockData"
+        >
+          <span class="loading-indicator" *ngIf="generatingMockData"></span>
+          {{ generatingMockData ? 'Generating Data...' : 'Generate Test Data (5 Titles)' }}
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-section">
+    <div class="loading-spinner"></div>
+    <p>Loading CFR titles...</p>
+  </div>
+
+  <!-- Mock Data Generation Loading -->
+  <div *ngIf="generatingMockData" class="loading-section">
+    <div class="loading-spinner"></div>
+    <p>🚀 Generating mock data for 5 CFR titles...</p>
+    <small>This may take a few moments while we create test regulations and relationships.</small>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="error-section">
+    <div class="error-message">
+      <h3>⚠️ Error Loading Data</h3>
+      <p>{{error}}</p>
+      <button class="btn btn-secondary" (click)="refreshData()">Try Again</button>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <section *ngIf="!loading && !error" class="data-section">
+    <div class="table-info">
+      <p>Showing {{filteredTitles.length}} of {{cfrTitles.length}} CFR titles</p>
+    </div>
+    
+    <div class="table-container">
+      <table class="cfr-table">
+        <thead>
+          <tr>
+            <th (click)="sortTable('number')" class="sortable">
+              Title #
+              <span class="sort-indicator" *ngIf="sortBy === 'number'">
+                {{sortDirection === 'asc' ? '↑' : '↓'}}
+              </span>
+            </th>
+            <th (click)="sortTable('name')" class="sortable">
+              Title Name
+              <span class="sort-indicator" *ngIf="sortBy === 'name'">
+                {{sortDirection === 'asc' ? '↑' : '↓'}}
+              </span>
+            </th>
+            <th (click)="sortTable('agency')" class="sortable">
+              Agency
+              <span class="sort-indicator" *ngIf="sortBy === 'agency'">
+                {{sortDirection === 'asc' ? '↑' : '↓'}}
+              </span>
+            </th>
+            <th (click)="sortTable('regulationCount')" class="sortable">
+              Regulations
+              <span class="sort-indicator" *ngIf="sortBy === 'regulationCount'">
+                {{sortDirection === 'asc' ? '↑' : '↓'}}
+              </span>
+            </th>
+            <th (click)="sortTable('conflictCount')" class="sortable">
+              Status
+              <span class="sort-indicator" *ngIf="sortBy === 'conflictCount'">
+                {{sortDirection === 'asc' ? '↑' : '↓'}}
+              </span>
+            </th>
+            <th>Last Updated</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let title of filteredTitles" [class]="getTitleStatusClass(title)">
+            <td class="title-number">{{title.number}}</td>
+            <td class="title-name">
+              <strong>{{title.name}}</strong>
+            </td>
+            <td class="agency-name">{{title.agency}}</td>
+            <td class="regulation-count">
+              {{title.regulationCount || 0}}
+            </td>
+            <td class="status-cell">
+              <span class="status-badge" [class]="getTitleStatusClass(title)">
+                {{getTitleStatusText(title)}}
+              </span>
+            </td>
+            <td class="last-updated">
+              {{title.lastUpdated || 'Never'}}
+            </td>
+            <td class="actions">
+              <button 
+                class="btn btn-sm btn-outline" 
+                (click)="viewTitleDetails(title.number)"
+                [disabled]="title.regulationCount === 0"
+              >
+                View Details
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="filteredTitles.length === 0" class="empty-state">
+      <h3>No titles found</h3>
+      <p>Try adjusting your search or filter criteria.</p>
+    </div>
+  </section>
+</div>

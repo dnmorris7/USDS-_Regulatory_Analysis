@@ -36,7 +36,7 @@ export class HomeComponent {
 
     try {
       const response = await this.http.post<any>(
-        `${this.API_BASE_URL}/generate-mock-data-all-titles-with-relationships`,
+        `${this.API_BASE_URL}/generate-mock-data-all-titles-with-relationships/5`,
         {}
       ).toPromise();
 
