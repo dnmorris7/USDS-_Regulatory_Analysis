@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Run RegulationsApplication",
+            "request": "launch",
+            "mainClass": "com.usds.regulations.RegulationsApplication",
+            "projectName": "regulations-backend",
+            "args": "",
+            "vmArgs": "",
+            "console": "integratedTerminal",
+            "env": {},
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "java",
+            "name": "Debug RegulationsApplication",
+            "request": "launch",
+            "mainClass": "com.usds.regulations.RegulationsApplication",
+            "projectName": "regulations-backend",
+            "args": "",
+            "vmArgs": "-Dspring.profiles.active=dev",
+            "console": "integratedTerminal",
+            "env": {},
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
