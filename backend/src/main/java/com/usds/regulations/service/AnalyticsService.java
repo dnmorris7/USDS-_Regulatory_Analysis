@@ -252,7 +252,7 @@ public class AnalyticsService {
     private Map<Integer, String> getTitleNames() {
         Map<Integer, String> titleNames = new HashMap<>();
         titleNames.put(1, "General Provisions");
-        titleNames.put(2, "Grants and Agreements");
+        titleNames.put(2, "Federal Financial Assistance");
         titleNames.put(3, "The President");
         titleNames.put(4, "Accounts");
         titleNames.put(5, "Administrative Personnel");
@@ -285,7 +285,7 @@ public class AnalyticsService {
         titleNames.put(32, "National Defense");
         titleNames.put(33, "Navigation and Navigable Waters");
         titleNames.put(34, "Education");
-        titleNames.put(35, "Panama Canal");
+        titleNames.put(35, "Reserved");
         titleNames.put(36, "Parks, Forests, and Public Property");
         titleNames.put(37, "Patents, Trademarks, and Copyrights");
         titleNames.put(38, "Pensions, Bonuses, and Veterans' Relief");

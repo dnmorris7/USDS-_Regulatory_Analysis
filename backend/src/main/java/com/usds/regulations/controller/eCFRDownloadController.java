@@ -21,10 +21,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.usds.regulations.entity.Regulation;
 import com.usds.regulations.entity.RegulationRelationship;
 import com.usds.regulations.repository.RegulationRepository;
+import com.usds.regulations.service.AutoRelationshipService;
 import com.usds.regulations.service.EcfrApiService;
 import com.usds.regulations.service.MockDataService;
 import com.usds.regulations.service.RegulationRelationshipService;
-import com.usds.regulations.service.AutoRelationshipService;
 
 @RestController
 @RequestMapping("/api")

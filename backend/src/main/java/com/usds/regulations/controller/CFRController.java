@@ -35,7 +35,7 @@ public class CFRController {
         // This matches the structure expected by our Angular RegulationService
         
         titles.add(createTitleMap(1, "General Provisions", "General Services Administration"));
-        titles.add(createTitleMap(2, "Grants and Agreements", "Office of Management and Budget"));
+        titles.add(createTitleMap(2, "Federal Financial Assistance", "Office of Management and Budget"));
         titles.add(createTitleMap(3, "The President", "Executive Office of the President"));
         titles.add(createTitleMap(4, "Accounts", "Government Accountability Office"));
         titles.add(createTitleMap(5, "Administrative Personnel", "Office of Personnel Management"));
@@ -68,7 +68,7 @@ public class CFRController {
         titles.add(createTitleMap(32, "National Defense", "Department of Defense"));
         titles.add(createTitleMap(33, "Navigation and Navigable Waters", "Department of Homeland Security"));
         titles.add(createTitleMap(34, "Education", "Department of Education"));
-        titles.add(createTitleMap(35, "Panama Canal", "Panama Canal Commission"));
+        titles.add(createTitleMap(35, "Reserved", "Reserved"));
         titles.add(createTitleMap(36, "Parks, Forests, and Public Property", "Department of the Interior"));
         titles.add(createTitleMap(37, "Patents, Trademarks, and Copyrights", "Department of Commerce"));
         titles.add(createTitleMap(38, "Pensions, Bonuses, and Veterans' Relief", "Department of Veterans Affairs"));
@@ -126,7 +126,6 @@ public class CFRController {
             "Internal Revenue Service",
             "Office of Management and Budget",
             "Office of Personnel Management",
-            "Panama Canal Commission",
             "Securities and Exchange Commission",
             "Small Business Administration",
             "United States Postal Service",

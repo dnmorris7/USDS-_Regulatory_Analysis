@@ -136,7 +136,7 @@ export class RegulationService {
   private getAllCFRTitles(): CFRTitle[] {
     return [
       { number: 1, name: 'General Provisions', agency: 'General Services Administration', regulationCount: 0, totalWordCount: 0, averageWordCount: 0, conflictCount: 0, lastUpdated: '', seal: 'gsa.png' },
-      { number: 2, name: 'Grants and Agreements', agency: 'Office of Management and Budget', regulationCount: 0, totalWordCount: 0, averageWordCount: 0, conflictCount: 0, lastUpdated: '', seal: 'omb.png' },
+      { number: 2, name: 'Federal Financial Assistance', agency: 'Office of Management and Budget', regulationCount: 0, totalWordCount: 0, averageWordCount: 0, conflictCount: 0, lastUpdated: '', seal: 'omb.png' },
       { number: 3, name: 'The President', agency: 'Executive Office of the President', regulationCount: 0, totalWordCount: 0, averageWordCount: 0, conflictCount: 0, lastUpdated: '', seal: 'eop.png' },
       { number: 4, name: 'Accounts', agency: 'Government Accountability Office', regulationCount: 0, totalWordCount: 0, averageWordCount: 0, conflictCount: 0, lastUpdated: '', seal: 'gao.png' },
       { number: 5, name: 'Administrative Personnel', agency: 'Office of Personnel Management', regulationCount: 0, totalWordCount: 0, averageWordCount: 0, conflictCount: 0, lastUpdated: '', seal: 'opm.png' },
