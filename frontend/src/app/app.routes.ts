@@ -18,9 +18,9 @@ export const routes: Routes = [
     title: 'CFR Title Details - USDS Regulatory Analysis'
   },
   { 
-    path: 'analytics', 
+    path: 'about', 
     loadComponent: () => import('./analytics/analytics').then(m => m.AnalyticsComponent),
-    title: 'Analytics - USDS Regulatory Analysis'
+    title: 'About - USDS Regulatory Analysis'
   },
   { 
     path: '**', 
