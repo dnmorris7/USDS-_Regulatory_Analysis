@@ -5,9 +5,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public enum Role {
-    ADMIN(Permission.GENERATE_DATA, Permission.DOWNLOAD_FILES, Permission.VIEW_ALL, Permission.MANAGE_USERS),
-    ANALYST(Permission.GENERATE_DATA, Permission.VIEW_ALL),
-    AUDITOR(Permission.VIEW_ALL),
+    ADMIN(Permission.GENERATE_DATA, Permission.DOWNLOAD_FILES, Permission.VIEW_ALL, Permission.MANAGE_USERS, Permission.EXPORT_CSV),
+    ANALYST(Permission.GENERATE_DATA, Permission.VIEW_ALL, Permission.EXPORT_REPORTS),
+    AUDITOR(Permission.VIEW_ALL, Permission.EXPORT_REPORTS, Permission.EXPORT_CSV),
     VISITOR(Permission.VIEW_PUBLIC);
 
     private final Set<Permission> permissions;

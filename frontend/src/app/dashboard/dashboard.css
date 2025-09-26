@@ -73,6 +73,49 @@
   justify-content: flex-end;
 }
 
+/* Button Styles */
+.btn-info {
+  background-color: #17a2b8;
+  border-color: #17a2b8;
+  color: white;
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+}
+
+.btn-info:hover {
+  background-color: #138496;
+  border-color: #117a8b;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-info:active {
+  background-color: #117a8b;
+  border-color: #10707f;
+  transform: translateY(0);
+}
+
+.btn-info:disabled {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.export-icon {
+  font-size: 16px;
+}
+
 /* Loading and Error States */
 .loading-section {
   text-align: center;

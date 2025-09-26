@@ -1,6 +1,7 @@
 com\usds\regulations\entity\RegulationRelationship.class
 com\usds\regulations\dto\AnalyticsResponse$TitleStats.class
 com\usds\regulations\service\AnalyticsService.class
+com\usds\regulations\service\CSVExportService.class
 com\usds\regulations\controller\AnalyticsController.class
 com\usds\regulations\dto\AnalyticsResponse$OverallStats.class
 com\usds\regulations\security\SecurityConfig.class
@@ -12,6 +13,7 @@ com\usds\regulations\service\ChangeDetectionService$ChangeDetectionResult.class
 com\usds\regulations\service\ChangeDetectionService$ChangeHistoryEntry.class
 com\usds\regulations\controller\CFRController.class
 com\usds\regulations\repository\RegulationRepository.class
+com\usds\regulations\controller\ExportController.class
 com\usds\regulations\repository\RegulationRelationshipRepository.class
 com\usds\regulations\controller\AnalyticsController$ChangeDetectionRequest.class
 com\usds\regulations\dto\AnalyticsResponse$RecentChange.class

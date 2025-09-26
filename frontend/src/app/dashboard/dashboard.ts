@@ -48,6 +48,64 @@ export class DashboardComponent implements OnInit {
     this.canGenerate = this.authService.canGenerate();
   }
 
+  canExportCSV(): boolean {
+    return this.authService.canExportCSV();
+  }
+
+  async downloadCSV() {
+    try {
+      console.log('🔄 Starting CSV export...');
+      
+      const response = await fetch('http://localhost:8081/api/export/cfr-titles/csv', {
+        method: 'GET',
+        headers: {
+          'Accept': 'text/csv,application/csv,*/*',
+        },
+        mode: 'cors'
+      });
+
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response headers:', response.headers);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Server response:', errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+
+      const csvContent = await response.text();
+      console.log('📄 CSV content received, length:', csvContent.length);
+      
+      if (!csvContent || csvContent.length === 0) {
+        throw new Error('Empty CSV content received');
+      }
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+      const url = window.URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `cfr_titles_${new Date().toISOString().slice(0, 10)}.csv`;
+      link.style.display = 'none';
+      
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+      
+      console.log('✅ CSV download initiated successfully');
+      
+    } catch (error) {
+      console.error('❌ CSV export failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert(`Export failed: ${errorMessage}\n\nPlease check:\n1. Backend is running on port 8081\n2. You have AUDITOR or ADMIN role\n3. Browser console for details`);
+    }
+  }
+
   ngOnInit() {
     this.loadAgencies();
     this.loadCFRTitles();

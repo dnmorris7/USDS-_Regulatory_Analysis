@@ -48,6 +48,18 @@
           <span class="loading-indicator" *ngIf="generatingMockData"></span>
           {{ generatingMockData ? 'Generating Data...' : 'Generate Test Data (5 Titles)' }}
         </button>
+        
+        <!-- Auditor CSV Export -->
+        <button 
+          *ngIf="canExportCSV()" 
+          class="btn btn-info" 
+          (click)="downloadCSV()"
+          title="Export CFR Titles data to CSV format"
+          [disabled]="loading"
+        >
+          <span class="export-icon">📊</span>
+          Download to CSV
+        </button>
       </div>
     </div>
   </section>

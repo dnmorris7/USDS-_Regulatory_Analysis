@@ -34,6 +34,7 @@ public class PermissionService {
             "canDownload", userRole.hasPermission(Permission.DOWNLOAD_FILES),
             "canViewAll", userRole.hasPermission(Permission.VIEW_ALL),
             "canExportReports", userRole.hasPermission(Permission.EXPORT_REPORTS),
+            "canExportCSV", userRole.hasPermission(Permission.EXPORT_CSV),
             "canManageUsers", userRole.hasPermission(Permission.MANAGE_USERS)
         );
     }

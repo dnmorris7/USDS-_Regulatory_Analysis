@@ -35,15 +35,14 @@ export const ROLES: { [key: string]: RoleConfig } = {
 };
 
 export const PERMISSIONS = {
-  GENERATE_DATA: 'generate:data',
-  DOWNLOAD_FILES: 'download:files',
-  VIEW_ALL: 'view:all',
-  VIEW_PUBLIC: 'view:public',
-  MANAGE_USERS: 'admin:users',
-  EXPORT_REPORTS: 'export:reports'
-};
-
-@Injectable({
+    GENERATE_DATA: 'generate:data',
+    DOWNLOAD_FILES: 'download:files',
+    VIEW_ALL: 'view:all',
+    VIEW_PUBLIC: 'view:public',
+    MANAGE_USERS: 'admin:users',
+    EXPORT_REPORTS: 'export:reports',
+    EXPORT_CSV: 'export:csv'
+};@Injectable({
   providedIn: 'root'
 })
 export class AuthService {
@@ -57,8 +56,8 @@ export class AuthService {
 
   private loadDefaultPermissions() {
     this.permissions.set('ADMIN', new Set(Object.values(PERMISSIONS)));
-    this.permissions.set('ANALYST', new Set([PERMISSIONS.GENERATE_DATA, PERMISSIONS.VIEW_ALL]));
-    this.permissions.set('AUDITOR', new Set([PERMISSIONS.VIEW_ALL]));
+    this.permissions.set('ANALYST', new Set([PERMISSIONS.GENERATE_DATA, PERMISSIONS.VIEW_ALL, PERMISSIONS.EXPORT_REPORTS]));
+    this.permissions.set('AUDITOR', new Set([PERMISSIONS.VIEW_ALL, PERMISSIONS.EXPORT_REPORTS, PERMISSIONS.EXPORT_CSV]));
     this.permissions.set('VISITOR', new Set([PERMISSIONS.VIEW_PUBLIC]));
   }
 
@@ -128,6 +127,10 @@ export class AuthService {
 
   canManageUsers(): boolean {
     return this.hasPermission(PERMISSIONS.MANAGE_USERS);
+  }
+
+  canExportCSV(): boolean {
+    return this.hasPermission(PERMISSIONS.EXPORT_CSV);
   }
 
   onRoleChange(callback: (role: string) => void): void {
