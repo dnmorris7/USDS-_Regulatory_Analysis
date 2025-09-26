@@ -1,4 +1,7 @@
 <div class="container">
+  <!-- Role Switcher -->
+  <app-role-switcher></app-role-switcher>
+
   <!-- Header Section -->
   <section class="dashboard-header">
     <h1 class="page-title">CFR Titles Dashboard</h1>
@@ -35,9 +38,9 @@
           <span *ngIf="!loading">Refresh Data</span>
         </button>
         
-        <!-- Development Only -->
+        <!-- Admin Only -->
         <button 
-          *ngIf="isDevelopmentMode" 
+          *ngIf="canGenerate" 
           class="btn btn-primary" 
           (click)="generateMockDataForAll()" 
           [disabled]="loading || generatingMockData"

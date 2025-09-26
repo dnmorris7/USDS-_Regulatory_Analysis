@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { RoleSwitcherComponent } from '../role-switcher/role-switcher';
+import { AuthService } from '../services/auth.service';
 
 interface GenerationStats {
   totalRegulations: number;
@@ -12,7 +14,7 @@ interface GenerationStats {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RoleSwitcherComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
@@ -22,12 +24,39 @@ export class HomeComponent {
   hasError = false;
   resultMessage = '';
   generationStats: GenerationStats | null = null;
+  
+  // Role-based permissions
+  currentRole: string = 'VISITOR';
+  canGenerate: boolean = false;
 
   private readonly API_BASE_URL = 'http://localhost:8081/api';
 
-  constructor(private router: Router, private http: HttpClient) {}
+  constructor(
+    private router: Router, 
+    private http: HttpClient,
+    private authService: AuthService
+  ) {
+    // Initialize role and permissions
+    this.updateRolePermissions();
+    
+    // Subscribe to role changes
+    this.authService.onRoleChange((newRole: string) => {
+      this.currentRole = newRole;
+      this.updateRolePermissions();
+    });
+  }
+
+  updateRolePermissions() {
+    this.currentRole = this.authService.getCurrentRole();
+    this.canGenerate = this.authService.canGenerate();
+  }
 
   async generateMockData(): Promise<void> {
+    if (!this.canGenerate) {
+      console.warn('Mock data generation is not permitted for current role');
+      return;
+    }
+    
     this.isLoading = true;
     this.showResults = false;
     this.hasError = false;

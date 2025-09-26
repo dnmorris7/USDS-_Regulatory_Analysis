@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { RegulationService, CFRTitle } from '../services/regulation';
+import { RoleSwitcherComponent } from '../role-switcher/role-switcher';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, RoleSwitcherComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
@@ -22,10 +24,29 @@ export class DashboardComponent implements OnInit {
   error: string | null = null;
   agencies: string[] = [];
 
-  // Development mode flag - set to false in production
-  isDevelopmentMode = true;
+  // Role-based permissions
+  currentRole: string = 'VISITOR';
+  canGenerate: boolean = false;
 
-  constructor(private regulationService: RegulationService, private router: Router) {}
+  constructor(
+    private regulationService: RegulationService, 
+    private router: Router,
+    private authService: AuthService
+  ) {
+    // Initialize role and permissions
+    this.updateRolePermissions();
+    
+    // Subscribe to role changes
+    this.authService.onRoleChange((newRole: string) => {
+      this.currentRole = newRole;
+      this.updateRolePermissions();
+    });
+  }
+
+  updateRolePermissions() {
+    this.currentRole = this.authService.getCurrentRole();
+    this.canGenerate = this.authService.canGenerate();
+  }
 
   ngOnInit() {
     this.loadAgencies();
@@ -107,8 +128,8 @@ export class DashboardComponent implements OnInit {
   // =======================
   
   generateMockDataForAll() {
-    if (!this.isDevelopmentMode) {
-      console.warn('Mock data generation is disabled in production mode');
+    if (!this.canGenerate) {
+      console.warn('Mock data generation is not permitted for current role');
       return;
     }
     

@@ -1,4 +1,7 @@
 <div class="container">
+  <!-- Role Switcher -->
+  <app-role-switcher></app-role-switcher>
+  
   <!-- Hero Section -->
   <section class="hero-section">
     <h1 class="hero-title">
@@ -98,10 +101,27 @@
     </p>
     
     <div class="action-buttons">
-      <button class="btn btn-primary" (click)="generateMockData()" [disabled]="isLoading">
+      <!-- Admin Only Generate Button -->
+      <button 
+        *ngIf="canGenerate" 
+        class="btn btn-primary" 
+        (click)="generateMockData()" 
+        [disabled]="isLoading"
+      >
         <span class="loading-indicator" *ngIf="isLoading"></span>
         {{ isLoading ? 'Generating Data...' : 'Generate Mock Data with Relationships' }}
       </button>
+      
+      <!-- Role-based message for visitors -->
+      <div *ngIf="!canGenerate" class="permission-message">
+        <div class="info-card">
+          <span class="info-icon">🔒</span>
+          <div class="info-content">
+            <h4>Admin Access Required</h4>
+            <p>Data generation requires administrator privileges. Switch to ADMIN role using the developer controls to access this feature.</p>
+          </div>
+        </div>
+      </div>
       
       <button class="btn btn-secondary" (click)="viewAnalytics()" [disabled]="isLoading">
         View Current Analytics

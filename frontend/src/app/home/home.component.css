@@ -225,6 +225,53 @@
   }
 }
 
+/* Permission Message Styles */
+.permission-message {
+  margin: 1rem 0;
+}
+
+.info-card {
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 500px;
+  margin: 0 auto;
+  transition: all 0.2s ease;
+}
+
+.info-card:hover {
+  background: rgba(255, 193, 7, 0.15);
+  border-color: rgba(255, 193, 7, 0.5);
+}
+
+.info-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.info-content {
+  flex: 1;
+}
+
+.info-content h4 {
+  margin: 0 0 0.5rem 0;
+  color: #ffc107;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.info-content p {
+  margin: 0;
+  color: var(--doge-light-gray);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
 @media (min-width: 769px) and (max-width: 1024px) {
   .features-grid {
     grid-template-columns: repeat(2, 1fr);
