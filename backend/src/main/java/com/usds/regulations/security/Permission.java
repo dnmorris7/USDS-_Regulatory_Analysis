@@ -12,7 +12,7 @@ public enum Permission {
     // Administrative
     MANAGE_USERS("admin:users", "Manage user accounts and permissions"),
     
-    // Reporting (for future implementation)
+   
     EXPORT_REPORTS("export:reports", "Export analytical reports and data"),
     EXPORT_CSV("export:csv", "Export data to CSV format");
 

@@ -1,4 +1,5 @@
 com\usds\regulations\entity\RegulationRelationship.class
+com\usds\regulations\security\RateLimitingService$RateLimitType.class
 com\usds\regulations\dto\AnalyticsResponse$TitleStats.class
 com\usds\regulations\service\AnalyticsService.class
 com\usds\regulations\service\CSVExportService.class
@@ -6,6 +7,7 @@ com\usds\regulations\controller\AnalyticsController.class
 com\usds\regulations\dto\AnalyticsResponse$OverallStats.class
 com\usds\regulations\security\SecurityConfig.class
 com\usds\regulations\service\ChangeDetectionService$ChangeType.class
+com\usds\regulations\config\FilterConfig.class
 com\usds\regulations\entity\RelationshipType.class
 com\usds\regulations\controller\TestController.class
 com\usds\regulations\entity\Regulation.class
@@ -17,10 +19,14 @@ com\usds\regulations\controller\ExportController.class
 com\usds\regulations\repository\RegulationRelationshipRepository.class
 com\usds\regulations\controller\AnalyticsController$ChangeDetectionRequest.class
 com\usds\regulations\dto\AnalyticsResponse$RecentChange.class
+com\usds\regulations\security\RateLimitingService.class
+com\usds\regulations\security\RateLimitingService$1.class
 com\usds\regulations\service\AutoRelationshipService.class
 com\usds\regulations\service\ChangeDetectionService$DuplicateDetectionResult.class
+com\usds\regulations\security\DDOSProtectionFilter.class
 com\usds\regulations\service\EcfrApiService.class
 com\usds\regulations\dto\AnalyticsResponse$AgencyStats.class
+com\usds\regulations\controller\RateLimitController.class
 com\usds\regulations\security\Role.class
 com\usds\regulations\service\RegulationRelationshipService.class
 com\usds\regulations\entity\ConflictSeverity.class
