@@ -1,0 +1,212 @@
+<!-- AI Chat Interface -->
+<div class="ai-chat-container">
+  
+  <!-- Sidebar - Conversation History -->
+  <aside class="sidebar" [class.sidebar-open]="isSidebarOpen" [class.sidebar-closed]="!isSidebarOpen">
+    
+    <!-- Sidebar Header -->
+    <div class="sidebar-header">
+      <div class="sidebar-header-content">
+        <h2>AI Assistant</h2>
+        <button class="btn-icon" (click)="newConversation()" [disabled]="!currentUser" title="New Conversation">
+          <span class="icon">+</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Conversation List -->
+    <div class="conversation-list">
+      <div *ngFor="let conv of conversations" 
+           class="conversation-item"
+           [class.active]="activeConversation?.id === conv.id"
+           (click)="selectConversation(conv)">
+        
+        <div class="conversation-content">
+          <div class="conversation-title">{{ conv.title }}</div>
+          <div class="conversation-preview">{{ getConversationPreview(conv) }}</div>
+          <div class="conversation-time">{{ formatTime(conv.updatedAt) }}</div>
+        </div>
+        
+        <button class="btn-delete" (click)="deleteConversation(conv, $event)" title="Delete">
+          <span class="icon">×</span>
+        </button>
+      </div>
+
+      <!-- Empty state -->
+      <div *ngIf="conversations.length === 0" class="empty-state">
+        <p>No conversations yet</p>
+        <button class="btn-primary" (click)="newConversation()" [disabled]="!currentUser">
+          Start New Chat
+        </button>
+      </div>
+    </div>
+
+    <!-- User Info & Switcher (Bottom of Sidebar) -->
+    <div class="sidebar-footer">
+      <div class="user-info" (click)="toggleUserSwitcher()">
+        <div class="user-avatar" [style.backgroundColor]="userSimulationService.getAvatarStyle().backgroundColor">
+          {{ currentUser?.avatarInitials || '?' }}
+        </div>
+        <div class="user-details">
+          <div class="user-name">{{ currentUser?.displayName || 'Not logged in' }}</div>
+          <div class="user-role">{{ currentUser?.role || 'No role' }}</div>
+        </div>
+        <span class="icon-chevron">▼</span>
+      </div>
+
+      <!-- User Switcher Dropdown -->
+      <div class="user-switcher" *ngIf="showUserSwitcher">
+        <div class="user-switcher-header">Switch User (Testing)</div>
+        <div *ngFor="let user of availableUsers" 
+             class="user-switcher-item"
+             [class.active]="currentUser?.id === user.id"
+             (click)="switchUser(user)">
+          <div class="user-avatar" [style.backgroundColor]="user.avatarColor">
+            {{ user.avatarInitials }}
+          </div>
+          <div class="user-details">
+            <div class="user-name">{{ user.displayName }}</div>
+            <div class="user-role">{{ user.role }}</div>
+          </div>
+          <span *ngIf="currentUser?.id === user.id" class="icon-check">✓</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Chat Area -->
+  <main class="chat-main" [class.sidebar-open]="isSidebarOpen">
+    
+    <!-- Top Bar -->
+    <div class="chat-header">
+      <button class="btn-icon btn-toggle-sidebar" (click)="toggleSidebar()" title="Toggle Sidebar">
+        <span class="icon">☰</span>
+      </button>
+      
+      <div class="chat-title">
+        <h1>AI Regulatory Assistant</h1>
+        <p class="chat-subtitle">Powered by Ollama (Gemma 3 27B) - Free Local AI</p>
+      </div>
+    </div>
+
+    <!-- Messages Container -->
+    <div class="messages-container" #messageContainer>
+      
+      <!-- Welcome Message (No Active Conversation) -->
+      <div *ngIf="!activeConversation" class="welcome-screen">
+        <div class="welcome-content">
+          <h2>Welcome to AI Regulatory Assistant</h2>
+          <p>Ask questions about federal regulations, analyze CFR data, or explore regulatory trends.</p>
+          
+          <div class="example-prompts">
+            <h3>Example Questions:</h3>
+            <button class="example-prompt" (click)="userMessage = 'What are the key regulations in Title 7?'; sendMessage()">
+              What are the key regulations in Title 7?
+            </button>
+            <button class="example-prompt" (click)="userMessage = 'Summarize recent changes to Title 21'; sendMessage()">
+              Summarize recent changes to Title 21
+            </button>
+            <button class="example-prompt" (click)="userMessage = 'Compare Title 9 and Title 12 regulations'; sendMessage()">
+              Compare Title 9 and Title 12 regulations
+            </button>
+          </div>
+
+          <div class="ai-capabilities">
+            <h3>Capabilities:</h3>
+            <ul>
+              <li>✓ Regulatory analysis and interpretation</li>
+              <li>✓ Data-driven insights from CFR database</li>
+              <li>✓ Natural language queries</li>
+              <li>✓ Conversation history persistence</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Messages -->
+      <div *ngIf="activeConversation" class="messages-list">
+        <div *ngFor="let message of activeConversation.messages" 
+             class="message"
+             [class.message-user]="message.role === 'user'"
+             [class.message-assistant]="message.role === 'assistant'"
+             [class.message-system]="message.role === 'system'">
+          
+          <!-- Message Avatar -->
+          <div class="message-avatar">
+            <div *ngIf="message.role === 'user'" 
+                 class="avatar"
+                 [style.backgroundColor]="userSimulationService.getAvatarStyle().backgroundColor">
+              {{ currentUser?.avatarInitials || 'U' }}
+            </div>
+            <div *ngIf="message.role === 'assistant'" class="avatar avatar-ai">
+              🤖
+            </div>
+            <div *ngIf="message.role === 'system'" class="avatar avatar-system">
+              ⚠️
+            </div>
+          </div>
+
+          <!-- Message Content -->
+          <div class="message-content">
+            <div class="message-header">
+              <span class="message-author">
+                <ng-container *ngIf="message.role === 'user'">{{ currentUser?.displayName }}</ng-container>
+                <ng-container *ngIf="message.role === 'assistant'">AI Assistant</ng-container>
+                <ng-container *ngIf="message.role === 'system'">System</ng-container>
+              </span>
+              <span class="message-time">{{ formatTime(message.timestamp) }}</span>
+              <span *ngIf="message.model" class="message-model">{{ message.model }}</span>
+            </div>
+            
+            <div class="message-text">{{ message.content }}</div>
+          </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div *ngIf="isLoading" class="message message-assistant">
+          <div class="message-avatar">
+            <div class="avatar avatar-ai">🤖</div>
+          </div>
+          <div class="message-content">
+            <div class="loading-dots">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="input-container">
+      <div class="input-wrapper">
+        <textarea 
+          #messageInput
+          [(ngModel)]="userMessage"
+          (keydown)="onKeyDown($event)"
+          placeholder="Ask about federal regulations..."
+          [disabled]="isLoading || !currentUser || !userSimulationService.canUseAI()"
+          rows="1"></textarea>
+        
+        <button 
+          class="btn-send"
+          (click)="sendMessage()"
+          [disabled]="!userMessage.trim() || isLoading || !currentUser || !userSimulationService.canUseAI()"
+          title="Send message (Enter)">
+          <span class="icon">➤</span>
+        </button>
+      </div>
+
+      <!-- Warning for visitors -->
+      <div *ngIf="currentUser && !userSimulationService.canUseAI()" class="access-warning">
+        ⚠️ You do not have permission to use AI features. Please contact an administrator.
+      </div>
+
+      <!-- Info text -->
+      <div class="input-info">
+        <span *ngIf="userSimulationService.canUseAI()">
+          Press Enter to send, Shift+Enter for new line
+        </span>
+      </div>
+    </div>
+  </main>
+</div>

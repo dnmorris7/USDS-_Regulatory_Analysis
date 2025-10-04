@@ -1,2 +1,3 @@
+com\usds\regulations\security\RateLimitingServiceTest.class
 com\usds\regulations\controller\DownloadEndpointTests.class
 com\usds\regulations\controller\ECFRDownloadControllerTests.class

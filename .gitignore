@@ -1,0 +1,111 @@
+# ==================== SECURITY - API KEYS & SECRETS ====================
+# CRITICAL: These files contain sensitive API keys and must NEVER be committed!
+.env
+.env.local
+.env.*.local
+**/secrets.properties
+**/application-secret*.properties
+
+# ==================== BACKEND (Java/Maven) ====================
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Spring Boot
+*.log
+*.log.*
+/logs/
+
+# Maven
+.mvn/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.flattened-pom.xml
+
+# ==================== FRONTEND (Angular/Node) ====================
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Angular build output
+/frontend/dist/
+/frontend/tmp/
+/frontend/out-tsc/
+/frontend/.angular/
+/frontend/.sass-cache/
+
+# ==================== IDE & EDITORS ====================
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Eclipse
+.apt_generated/
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+bin/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# ==================== OPERATING SYSTEM ====================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+
+# ==================== TESTING & COVERAGE ====================
+coverage/
+*.cover
+.hypothesis/
+.pytest_cache/
+test-results/
+junit-reports/
+
+# ==================== MISC ====================
+*.swp
+*.swo
+*.tmp
+*.bak
+*.orig

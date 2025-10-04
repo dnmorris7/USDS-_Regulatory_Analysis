@@ -15,6 +15,7 @@
     <description>Backend service for USDS Federal Regulations Analysis system</description>
     <properties>
         <java.version>17</java.version>
+        <spring-ai.version>1.0.0-M4</spring-ai.version>
     </properties>
     <dependencies>
         <!-- Spring Boot Web Starter -->
@@ -81,6 +82,43 @@
             <artifactId>bucket4j-core</artifactId>
             <version>8.7.0</version>
         </dependency>
+        
+        <!-- Spring AI Core -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-core</artifactId>
+            <version>${spring-ai.version}</version>
+        </dependency>
+        
+        <!-- Spring AI Ollama (Free Local AI) -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-ollama</artifactId>
+            <version>${spring-ai.version}</version>
+        </dependency>
+        
+        <!-- Spring AI OpenAI (Optional - for paid API) -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-openai</artifactId>
+            <version>${spring-ai.version}</version>
+            <optional>true</optional>
+        </dependency>
+        
+        <!-- Spring AI Anthropic (Optional - for paid API) -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-anthropic</artifactId>
+            <version>${spring-ai.version}</version>
+            <optional>true</optional>
+        </dependency>
+        
+        <!-- Environment Variables Support -->
+        <dependency>
+            <groupId>io.github.cdimascio</groupId>
+            <artifactId>java-dotenv</artifactId>
+            <version>5.2.2</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -91,4 +129,16 @@
             </plugin>
         </plugins>
     </build>
+    
+    <!-- Spring AI Milestone Repository -->
+    <repositories>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 </project>

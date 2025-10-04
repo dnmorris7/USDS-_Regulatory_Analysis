@@ -23,6 +23,11 @@ export const routes: Routes = [
     title: 'About - USDS Regulatory Analysis'
   },
   { 
+    path: 'ai-chat', 
+    loadComponent: () => import('./ai-chat/ai-chat').then(m => m.AIChatComponent),
+    title: 'AI Assistant - USDS Regulatory Analysis'
+  },
+  { 
     path: '**', 
     redirectTo: '',
     pathMatch: 'full'
