@@ -1,6 +1,8 @@
 package com.usds.regulations.config;
 
 import io.github.cdimascio.dotenv.Dotenv;
+import org.springframework.ai.ollama.OllamaChatModel;
+import org.springframework.ai.ollama.api.OllamaApi;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,12 +44,47 @@ public class AIConfiguration {
                 .load();
     }
 
+    /**
+     * Configure Ollama Chat Model bean
+     * Connects to Ollama API running on Docker
+     */
+    @Bean
+    public OllamaChatModel ollamaChatModel() {
+        OllamaApi ollamaApi = new OllamaApi(ollama.getBaseUrl());
+        return new OllamaChatModel(ollamaApi);
+    }
+
     // ==================== FEATURE TOGGLE ====================
+    
+    private FeatureConfig feature = new FeatureConfig();
+
+    public static class FeatureConfig {
+        @NotNull
+        private Boolean enabled = true;
+        
+        @NotBlank
+        private String defaultModel = "GEMMA3_27B";
+        
+        @Min(1)
+        private Integer maxTokens = 4000;
+
+        // Getters and Setters
+        public Boolean isEnabled() { return enabled; }
+        public void setEnabled(Boolean enabled) { this.enabled = enabled; }
+        
+        public String getDefaultModel() { return defaultModel; }
+        public void setDefaultModel(String defaultModel) { this.defaultModel = defaultModel; }
+        
+        public Integer getMaxTokens() { return maxTokens; }
+        public void setMaxTokens(Integer maxTokens) { this.maxTokens = maxTokens; }
+    }
+
+    // ==================== FEATURE TOGGLE (Old - for backwards compatibility) ====================
     
     @NotNull
     private Boolean featureEnabled = true;
 
-    // ==================== DEFAULT MODEL ====================
+    // ==================== DEFAULT MODEL (Old - for backwards compatibility) ====================
     
     @NotBlank
     private String defaultModel = "GEMMA3_27B";
@@ -126,6 +163,10 @@ public class AIConfiguration {
         
         public Boolean getEnabled() { return enabled; }
         public void setEnabled(Boolean enabled) { this.enabled = enabled; }
+        
+        public boolean isConfigured() {
+            return enabled && apiKey != null && !apiKey.isEmpty();
+        }
     }
 
     // ==================== ANTHROPIC (OPTIONAL PAID API) ====================
@@ -148,6 +189,10 @@ public class AIConfiguration {
         
         public Boolean getEnabled() { return enabled; }
         public void setEnabled(Boolean enabled) { this.enabled = enabled; }
+        
+        public boolean isConfigured() {
+            return enabled && apiKey != null && !apiKey.isEmpty();
+        }
     }
 
     // ==================== GOOGLE AI (OPTIONAL PAID API) ====================
@@ -170,6 +215,10 @@ public class AIConfiguration {
         
         public Boolean getEnabled() { return enabled; }
         public void setEnabled(Boolean enabled) { this.enabled = enabled; }
+        
+        public boolean isConfigured() {
+            return enabled && apiKey != null && !apiKey.isEmpty();
+        }
     }
 
     // ==================== RATE LIMITING ====================
@@ -261,11 +310,20 @@ public class AIConfiguration {
 
     // ==================== ROOT GETTERS & SETTERS ====================
 
+    public FeatureConfig getFeature() { return feature; }
+    public void setFeature(FeatureConfig feature) { this.feature = feature; }
+
     public Boolean getFeatureEnabled() { return featureEnabled; }
-    public void setFeatureEnabled(Boolean featureEnabled) { this.featureEnabled = featureEnabled; }
+    public void setFeatureEnabled(Boolean featureEnabled) { 
+        this.featureEnabled = featureEnabled;
+        this.feature.setEnabled(featureEnabled);
+    }
 
     public String getDefaultModel() { return defaultModel; }
-    public void setDefaultModel(String defaultModel) { this.defaultModel = defaultModel; }
+    public void setDefaultModel(String defaultModel) { 
+        this.defaultModel = defaultModel;
+        this.feature.setDefaultModel(defaultModel);
+    }
 
     public ModelConfig getModel() { return model; }
     public void setModel(ModelConfig model) { this.model = model; }
