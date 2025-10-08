@@ -43,10 +43,10 @@ public class AIModelService {
      */
     public boolean isModelAvailable(AIModel model) {
         return switch (model.getProvider()) {
-            case "openai" -> aiConfig.getOpenai().isEnabled();
-            case "anthropic" -> aiConfig.getAnthropic().isEnabled();
-            case "google" -> aiConfig.getGoogle().isEnabled();
-            case "ollama" -> isOllamaAvailable() && isModelPulledInOllama(model.getModelName());
+            case "OpenAI" -> aiConfig.getOpenai().isEnabled();
+            case "Anthropic" -> aiConfig.getAnthropic().isEnabled();
+            case "Google" -> aiConfig.getGoogle().isEnabled();
+            case "Ollama" -> isOllamaAvailable() && isModelPulledInOllama(model.getModelId());
             default -> false;
         };
     }
@@ -71,9 +71,17 @@ public class AIModelService {
     private boolean isModelPulledInOllama(String modelName) {
         try {
             String response = restTemplate.getForObject(ollamaBaseUrl + "/api/tags", String.class);
-            boolean isPulled = response != null && response.contains("\"name\":\"" + modelName + "\"");
+            // Check for model name with possible whitespace variations in JSON
+            boolean isPulled = response != null && (
+                response.contains("\"name\":\"" + modelName + "\"") ||
+                response.contains("\"name\": \"" + modelName + "\"") ||
+                response.contains("\"model\":\"" + modelName + "\"") ||
+                response.contains("\"model\": \"" + modelName + "\"")
+            );
             if (!isPulled) {
                 logger.debug("Model {} is not pulled in Ollama", modelName);
+            } else {
+                logger.debug("Model {} is available in Ollama", modelName);
             }
             return isPulled;
         } catch (Exception e) {
@@ -103,7 +111,7 @@ public class AIModelService {
         List<AIModel> availableModels = getAvailableModels();
         
         AIModel ollamaModel = availableModels.stream()
-                .filter(m -> "ollama".equals(m.getProvider()))
+                .filter(m -> "Ollama".equals(m.getProvider()))
                 .findFirst()
                 .orElse(null);
         
@@ -129,9 +137,9 @@ public class AIModelService {
         }
         
         if (!isModelAvailable(model)) {
-            String errorMsg = "ollama".equals(model.getProvider())
+            String errorMsg = "Ollama".equals(model.getProvider())
                 ? String.format("Model %s is not pulled in Ollama. Run: docker exec -it ollama ollama pull %s", 
-                    model.getDisplayName(), model.getModelName())
+                    model.getDisplayName(), model.getModelId())
                 : String.format("Model %s requires an API key in .env file", model.getDisplayName());
             
             throw new IllegalArgumentException(errorMsg);
@@ -149,8 +157,8 @@ public class AIModelService {
             try {
                 String response = restTemplate.getForObject(ollamaBaseUrl + "/api/tags", String.class);
                 pulledModels = Arrays.stream(AIModel.values())
-                        .filter(m -> "ollama".equals(m.getProvider()))
-                        .filter(m -> response != null && response.contains("\"name\":\"" + m.getModelName() + "\""))
+                        .filter(m -> "Ollama".equals(m.getProvider()))
+                        .filter(m -> response != null && response.contains("\"name\":\"" + m.getModelId() + "\""))
                         .map(AIModel::getDisplayName)
                         .collect(Collectors.toList());
             } catch (Exception e) {

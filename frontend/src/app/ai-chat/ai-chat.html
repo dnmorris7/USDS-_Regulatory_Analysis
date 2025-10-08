@@ -85,7 +85,24 @@
       
       <div class="chat-title">
         <h1>AI Regulatory Assistant</h1>
-        <p class="chat-subtitle">Powered by Ollama (Gemma 3 27B) - Free Local AI</p>
+        <p class="chat-subtitle">
+          <label for="model-select">Select Model:</label>
+          <select id="model-select" class="model-selector" [(ngModel)]="selectedModel" [disabled]="availableModels.length === 0">
+            <option *ngIf="availableModels.length === 0" value="">Loading models...</option>
+            <option *ngFor="let model of availableModels" [value]="model">
+              {{ getModelDisplayName(model) }}
+            </option>
+          </select>
+          <span class="status-indicator" [class.status-available]="ollamaStatus === 'available'" 
+                [class.status-unavailable]="ollamaStatus === 'unavailable'"
+                [class.status-checking]="ollamaStatus === 'checking'"
+                [title]="ollamaStatus === 'available' ? 'AI Ready' : ollamaStatus === 'unavailable' ? 'AI Offline' : 'Checking...'">
+            <span class="status-dot"></span>
+            <span class="status-text">
+              {{ ollamaStatus === 'available' ? 'AI Ready' : ollamaStatus === 'unavailable' ? 'AI Offline' : 'Checking...' }}
+            </span>
+          </span>
+        </p>
       </div>
     </div>
 
@@ -158,7 +175,10 @@
               <span *ngIf="message.model" class="message-model">{{ message.model }}</span>
             </div>
             
-            <div class="message-text">{{ message.content }}</div>
+            <div class="message-text">
+              <!-- Render plain text for all messages (Markdown rendering disabled) -->
+              {{ message.content }}
+            </div>
           </div>
         </div>
 

@@ -1,11 +1,12 @@
 package com.usds.regulations.service;
 
-import com.opencsv.CSVWriter;
-import org.springframework.stereotype.Service;
-
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.opencsv.CSVWriter;
 
 @Service
 public class CSVExportService {

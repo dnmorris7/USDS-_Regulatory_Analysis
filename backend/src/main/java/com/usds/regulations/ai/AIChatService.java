@@ -58,7 +58,7 @@ public class AIChatService {
 
             // Configure model options
             OllamaOptions options = OllamaOptions.create()
-                    .withModel(model.getModelName())
+                    .withModel(model.getModelId())
                     .withTemperature(0.7);
 
             // Create prompt and get response
@@ -109,7 +109,7 @@ public class AIChatService {
 
             // Configure model options
             OllamaOptions options = OllamaOptions.create()
-                    .withModel(model.getModelName())
+                    .withModel(model.getModelId())
                     .withTemperature(0.7);
 
             // Create prompt and stream response

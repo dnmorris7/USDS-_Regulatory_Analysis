@@ -283,6 +283,114 @@
   color: var(--doge-primary);
   margin: 0;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chat-subtitle label {
+  color: var(--doge-primary);
+  font-weight: 500;
+}
+
+/* Model Selector Dropdown */
+.model-selector {
+  background: var(--doge-card-bg);
+  border: 1px solid var(--doge-border);
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: var(--doge-white);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  min-width: 180px;
+}
+
+.model-selector:hover:not(:disabled) {
+  border-color: var(--doge-primary);
+  background: rgba(255, 107, 53, 0.05);
+}
+
+.model-selector:focus {
+  border-color: var(--doge-primary);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.model-selector:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.model-selector option {
+  background: var(--doge-card-bg);
+  color: var(--doge-white);
+  padding: 8px;
+}
+
+/* Status Indicator */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.status-available {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.status-available .status-dot {
+  background: #22c55e;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+
+.status-unavailable {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.status-unavailable .status-dot {
+  background: #ef4444;
+  animation: none;
+}
+
+.status-checking {
+  background: rgba(156, 163, 175, 0.15);
+  color: #9ca3af;
+  border: 1px solid rgba(156, 163, 175, 0.3);
+}
+
+.status-checking .status-dot {
+  background: #9ca3af;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
 }
 
 /* Messages Container */
@@ -464,6 +572,7 @@
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .message-user .message-text {

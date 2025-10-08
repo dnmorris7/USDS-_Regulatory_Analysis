@@ -51,7 +51,7 @@ public class AIChatController {
                             "id", model.name(),
                             "displayName", model.getDisplayName(),
                             "provider", model.getProvider(),
-                            "modelName", model.getModelName()
+                            "modelId", model.getModelId()
                     ))
                     .collect(Collectors.toList());
 

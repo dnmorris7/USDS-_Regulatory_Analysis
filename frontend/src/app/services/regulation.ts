@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, catchError, throwError, map } from 'rxjs';
+import { Observable, catchError, throwError, map, BehaviorSubject } from 'rxjs';
 
 export interface CFRTitle {
   number: number;
@@ -34,11 +34,32 @@ export interface RelationshipSummary {
   redundancyCount: number;
 }
 
+export interface ChatMessage {
+  id: string;
+  content: string;
+  isUser: boolean;
+  timestamp: Date;
+  isStreaming?: boolean;
+}
+
+export interface Conversation {
+  id: string;
+  title: string;
+  messages: ChatMessage[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class RegulationService {
   private readonly baseUrl = 'http://localhost:8081/api';
+  private readonly AI_API_BASE = 'http://localhost:8081/api/ai';
+  private readonly STORAGE_KEY_PREFIX = 'ai_conversations_';
+  
+  private conversationsSubject = new BehaviorSubject<Conversation[]>([]);
+  public conversations$ = this.conversationsSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
@@ -235,6 +256,186 @@ export class RegulationService {
     };
     
     return sealMap[agency] || 'default.png';
+  }
+
+  // =======================
+  // AI CHAT METHODS
+  // =======================
+
+  /**
+   * Get available AI models from backend
+   */
+  getAvailableModels(): Observable<any> {
+    return this.http.get(`${this.AI_API_BASE}/models`).pipe(
+      catchError(error => {
+        console.error('Error fetching models:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Send a message with streaming response (SSE)
+   */
+  sendMessageStreaming(message: string, model: string, conversationId: string): Observable<string> {
+    const request = {
+      message: message,
+      model: model,
+      conversationId: conversationId,
+      stream: true
+    };
+
+    return new Observable(observer => {
+      const token = localStorage.getItem('auth_token') || '';
+      
+      fetch(`${this.AI_API_BASE}/chat/stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(request)
+      }).then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+        let buffer = ''; // Buffer for incomplete lines
+
+        const readStream = () => {
+          reader?.read().then(({ done, value }) => {
+            if (done) {
+              observer.complete();
+              return;
+            }
+
+            // Decode chunk and add to buffer
+            buffer += decoder.decode(value, { stream: true });
+            
+            // Process complete lines (SSE format: "data: <content>\n\n")
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+            for (const line of lines) {
+              if (line.startsWith('data:')) {
+                // Extract content after "data:" prefix (preserve spaces!)
+                const content = line.substring(5);
+                // Only trim if the line is not empty, but preserve internal spaces
+                if (content && content.trim() !== '' && content.trim() !== '[DONE]') {
+                  observer.next(content);
+                }
+              }
+            }
+
+            readStream();
+          }).catch(error => {
+            observer.error(error);
+          });
+        };
+
+        readStream();
+      }).catch(error => {
+        console.error('Streaming error:', error);
+        observer.error(error);
+      });
+    });
+  }
+
+  /**
+   * Send a message (non-streaming)
+   */
+  sendMessage(message: string, model: string, conversationId: string): Observable<any> {
+    const request = {
+      message: message,
+      model: model,
+      conversationId: conversationId,
+      stream: false
+    };
+
+    return this.http.post(`${this.AI_API_BASE}/chat`, request).pipe(
+      map((response: any) => {
+        if (response.success !== false) {
+          return response;
+        } else {
+          throw new Error(response.error || 'Failed to get AI response');
+        }
+      }),
+      catchError(error => {
+        console.error('Error sending message:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Check Ollama status
+   */
+  checkOllamaStatus(): Observable<any> {
+    return this.http.get(`${this.AI_API_BASE}/ollama/status`);
+  }
+
+  /**
+   * Get AI health status
+   */
+  getAIHealthStatus(): Observable<any> {
+    return this.http.get(`${this.AI_API_BASE}/health`);
+  }
+
+  /**
+   * Save conversation to localStorage
+   */
+  saveConversation(conversation: Conversation, userId: string) {
+    const key = this.getStorageKey(userId);
+    const conversations = this.loadConversationsForUser(userId);
+    
+    const index = conversations.findIndex(c => c.id === conversation.id);
+    if (index >= 0) {
+      conversations[index] = conversation;
+    } else {
+      conversations.unshift(conversation);
+    }
+    
+    localStorage.setItem(key, JSON.stringify(conversations));
+    this.conversationsSubject.next(conversations);
+  }
+
+  /**
+   * Load conversations for specific user
+   */
+  loadConversationsForUser(userId: string): Conversation[] {
+    const key = this.getStorageKey(userId);
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : [];
+  }
+
+  /**
+   * Delete conversation
+   */
+  deleteConversation(conversationId: string, userId: string): Observable<boolean> {
+    return new Observable(observer => {
+      try {
+        const conversations = this.loadConversationsForUser(userId);
+        const filtered = conversations.filter(c => c.id !== conversationId);
+        
+        const key = this.getStorageKey(userId);
+        localStorage.setItem(key, JSON.stringify(filtered));
+        this.conversationsSubject.next(filtered);
+        
+        observer.next(true);
+        observer.complete();
+      } catch (error) {
+        observer.error(error);
+      }
+    });
+  }
+
+  /**
+   * Get storage key for user
+   */
+  private getStorageKey(userId: string): string {
+    return `${this.STORAGE_KEY_PREFIX}${userId}`;
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {

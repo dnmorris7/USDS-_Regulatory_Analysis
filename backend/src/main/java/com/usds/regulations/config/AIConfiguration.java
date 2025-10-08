@@ -3,6 +3,7 @@ package com.usds.regulations.config;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.api.OllamaApi;
+import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -51,7 +52,12 @@ public class AIConfiguration {
     @Bean
     public OllamaChatModel ollamaChatModel() {
         OllamaApi ollamaApi = new OllamaApi(ollama.getBaseUrl());
-        return new OllamaChatModel(ollamaApi);
+        return OllamaChatModel.builder()
+                .withOllamaApi(ollamaApi)
+                .withDefaultOptions(OllamaOptions.create()
+                        .withModel("gemma3:27b-it-qat")
+                        .withTemperature(0.7))
+                .build();
     }
 
     // ==================== FEATURE TOGGLE ====================
@@ -164,6 +170,8 @@ public class AIConfiguration {
         public Boolean getEnabled() { return enabled; }
         public void setEnabled(Boolean enabled) { this.enabled = enabled; }
         
+        public boolean isEnabled() { return enabled != null && enabled; }
+        
         public boolean isConfigured() {
             return enabled && apiKey != null && !apiKey.isEmpty();
         }
@@ -190,6 +198,8 @@ public class AIConfiguration {
         public Boolean getEnabled() { return enabled; }
         public void setEnabled(Boolean enabled) { this.enabled = enabled; }
         
+        public boolean isEnabled() { return enabled != null && enabled; }
+        
         public boolean isConfigured() {
             return enabled && apiKey != null && !apiKey.isEmpty();
         }
@@ -215,6 +225,8 @@ public class AIConfiguration {
         
         public Boolean getEnabled() { return enabled; }
         public void setEnabled(Boolean enabled) { this.enabled = enabled; }
+        
+        public boolean isEnabled() { return enabled != null && enabled; }
         
         public boolean isConfigured() {
             return enabled && apiKey != null && !apiKey.isEmpty();

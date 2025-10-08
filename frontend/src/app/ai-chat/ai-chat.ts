@@ -1,7 +1,9 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MarkdownModule } from 'ngx-markdown';
 import { UserSimulationService, SimulatedUser } from '../services/user-simulation.service';
+import { RegulationService } from '../services/regulation';
 import { Subscription } from 'rxjs';
 
 /**
@@ -39,7 +41,7 @@ export interface ChatConversation {
 @Component({
   selector: 'app-ai-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MarkdownModule],
   templateUrl: './ai-chat.html',
   styleUrls: ['./ai-chat.css']
 })
@@ -54,6 +56,12 @@ export class AIChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   showUserSwitcher = false;
   private userSubscription?: Subscription;
 
+  // AI state
+  availableModels: string[] = []; // Array of model enum names (e.g., "GEMMA3_27B")
+  modelDetails: Map<string, any> = new Map(); // Map of enum name -> full model details
+  selectedModel: string = ''; // Will be set from backend's defaultModel
+  ollamaStatus: 'checking' | 'available' | 'unavailable' = 'checking';
+
   // Conversation state
   conversations: ChatConversation[] = [];
   activeConversation: ChatConversation | null = null;
@@ -66,8 +74,11 @@ export class AIChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   private readonly STORAGE_KEY_PREFIX = 'usds_ai_conversations_';
 
   constructor(
-    public userSimulationService: UserSimulationService
-  ) {}
+    public userSimulationService: UserSimulationService,
+    private regulationService: RegulationService
+  ) {
+    // Markdown parsing handled by ngx-markdown
+  }
 
   ngOnInit(): void {
     // Subscribe to user changes
@@ -88,6 +99,10 @@ export class AIChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     if (!this.userSimulationService.canUseAI()) {
       console.warn('[AIChat] Current user does not have AI access');
     }
+
+    // Load available models and check backend status
+    this.loadAvailableModels();
+    this.checkBackendStatus();
   }
 
   ngOnDestroy(): void {
@@ -177,6 +192,7 @@ export class AIChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     };
 
     this.activeConversation.messages.push(userMsg);
+    const messageContent = this.userMessage.trim();
     this.userMessage = '';
     this.isLoading = true;
     this.shouldScrollToBottom = true;
@@ -189,56 +205,125 @@ export class AIChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.activeConversation.updatedAt = new Date();
     this.saveConversations();
 
+    // Create assistant message placeholder for streaming
+    const assistantMsg: ChatMessage = {
+      id: this.generateId(),
+      role: 'assistant',
+      content: '',
+      timestamp: new Date(),
+      model: this.selectedModel,
+      isStreaming: true
+    };
+
+    this.activeConversation.messages.push(assistantMsg);
+
     try {
-      // TODO: Replace with actual backend API call
-      // For now, simulate AI response
-      const assistantMsg = await this.simulateAIResponse(userMsg.content);
-      
-      this.activeConversation.messages.push(assistantMsg);
-      this.activeConversation.updatedAt = new Date();
-      this.saveConversations();
-      this.shouldScrollToBottom = true;
+      // Use real backend streaming
+      this.regulationService.sendMessageStreaming(
+        messageContent,
+        this.selectedModel,
+        this.activeConversation.id
+      ).subscribe({
+        next: (chunk: string) => {
+          // Append streaming chunk
+          assistantMsg.content += chunk;
+          this.shouldScrollToBottom = true;
+        },
+        error: (error: any) => {
+          console.error('[AIChat] Streaming error:', error);
+          assistantMsg.isStreaming = false;
+          assistantMsg.content = 'Sorry, there was an error processing your message. Please try again.';
+          assistantMsg.role = 'system';
+          this.isLoading = false;
+          this.saveConversations();
+        },
+        complete: () => {
+          // Streaming complete
+          assistantMsg.isStreaming = false;
+          this.isLoading = false;
+          this.activeConversation!.updatedAt = new Date();
+          this.saveConversations();
+          this.shouldScrollToBottom = true;
+        }
+      });
       
     } catch (error) {
       console.error('[AIChat] Error sending message:', error);
       
-      // Add error message
-      const errorMsg: ChatMessage = {
-        id: this.generateId(),
-        role: 'system',
-        content: 'Sorry, there was an error processing your message. Please try again.',
-        timestamp: new Date()
-      };
-      
-      this.activeConversation.messages.push(errorMsg);
-      this.saveConversations();
-      
-    } finally {
+      // Update assistant message with error
+      assistantMsg.isStreaming = false;
+      assistantMsg.content = 'Sorry, there was an error processing your message. Please try again.';
+      assistantMsg.role = 'system';
       this.isLoading = false;
+      this.saveConversations();
     }
   }
 
   /**
-   * Simulate AI response (temporary - replace with backend call)
+   * Load available AI models from backend
    */
-  private async simulateAIResponse(userMessage: string): Promise<ChatMessage> {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
+  private loadAvailableModels(): void {
+    this.regulationService.getAvailableModels().subscribe({
+      next: (response: any) => {
+        if (response && response.models) {
+          // Backend returns: { models: [{id: "GEMMA3_27B", displayName: "...", ...}], defaultModel: "GEMMA3_27B", ... }
+          
+          // Store full model details
+          this.modelDetails.clear();
+          response.models.forEach((m: any) => {
+            this.modelDetails.set(m.id, m);
+          });
+          
+          // Extract enum names for dropdown
+          this.availableModels = response.models.map((m: any) => m.id);
+          console.log('[AIChat] Loaded models:', this.availableModels);
+          
+          // Use backend's default model
+          if (response.defaultModel) {
+            this.selectedModel = response.defaultModel;
+          } else if (this.availableModels.length > 0) {
+            this.selectedModel = this.availableModels[0];
+          }
+        }
+      },
+      error: (error: any) => {
+        console.error('[AIChat] Error loading models:', error);
+        this.availableModels = [];
+        this.modelDetails.clear();
+      }
+    });
+  }
 
-    const responses = [
-      "I'm a simulated AI assistant. The backend integration is pending. Your message was: " + userMessage,
-      "This is a placeholder response. Once the backend is connected, I'll provide intelligent answers about federal regulations.",
-      "Hello! I'm ready to help with regulatory analysis once the AI backend service is implemented.",
-      "Your question has been received. The AI model integration (Ollama/GPT) will provide actual answers soon."
-    ];
+  /**
+   * Get display name for a model
+   */
+  getModelDisplayName(modelId: string): string {
+    const details = this.modelDetails.get(modelId);
+    return details?.displayName || modelId;
+  }
 
-    return {
-      id: this.generateId(),
-      role: 'assistant',
-      content: responses[Math.floor(Math.random() * responses.length)],
-      timestamp: new Date(),
-      model: 'GEMMA3_27B (simulated)'
-    };
+  /**
+   * Check backend/Ollama status
+   */
+  private checkBackendStatus(): void {
+    this.ollamaStatus = 'checking';
+    
+    this.regulationService.checkOllamaStatus().subscribe({
+      next: (response: any) => {
+        // Backend returns: { available: true/false, baseUrl: "...", pulledModels: [...] }
+        if (response.available === true) {
+          this.ollamaStatus = 'available';
+          console.log('[AIChat] Backend status: Available');
+        } else {
+          this.ollamaStatus = 'unavailable';
+          console.warn('[AIChat] Backend status: Unavailable');
+        }
+      },
+      error: (error: any) => {
+        console.error('[AIChat] Error checking status:', error);
+        this.ollamaStatus = 'unavailable';
+      }
+    });
   }
 
   /**
